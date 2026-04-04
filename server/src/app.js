@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import authRoutes from "./routes/authRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
+import docsRoutes from "./routes/docsRoutes.js";
 import recordRoutes from "./routes/recordRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
@@ -24,6 +25,7 @@ app.get("/health", (_req, res) => {
   });
 });
 
+app.use("/api/docs", docsRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/records", recordRoutes);
