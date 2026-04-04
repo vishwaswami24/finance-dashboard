@@ -10,6 +10,8 @@
 
 A full-stack finance dashboard project focused on financial record processing, role-based access control, and summary insights for operational decision-making.
 
+Additional project write-up: [DOCUMENTATION.md](./DOCUMENTATION.md)
+
 ## Overview
 
 This project demonstrates:
@@ -180,7 +182,18 @@ npm --workspace server run dev
 npm --workspace client run dev
 ```
 
-### 5. Run tests
+### 5. Open the API documentation
+
+After the backend is running, the project serves Swagger UI at:
+
+- `http://localhost:5000/api/docs`
+- `http://localhost:5000/api/docs/openapi.yaml`
+
+After deployment, replace `http://localhost:5000` with your deployed API base URL.
+
+You can also import [`server/openapi.yaml`](./server/openapi.yaml) into Swagger Editor or SwaggerHub.
+
+### 6. Run tests
 
 ```bash
 npm --workspace server run test
