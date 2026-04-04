@@ -1,0 +1,969 @@
+openapi: 3.0.3
+info:
+  title: Finance Dashboard API
+  version: 1.0.0
+  description: |
+    OpenAPI documentation for the finance dashboard backend.
+
+    Authentication uses JWT bearer tokens returned by the login endpoint.
+servers:
+  - url: /
+    description: Current API host
+tags:
+  - name: System
+    description: Health and service status endpoints
+  - name: Authentication
+    description: Login and current-user endpoints
+  - name: Users
+    description: Admin-only user management
+  - name: Records
+    description: Financial record CRUD and filtering
+  - name: Dashboard
+    description: Summary analytics for finance records
+paths:
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check
+      description: Returns the current API health status.
+      responses:
+        "200":
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Log in
+      description: Authenticates a user and returns a JWT token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login succeeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+  /api/auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get the current user
+      description: Returns the authenticated user's profile.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentUserResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /api/users:
+    get:
+      tags:
+        - Users
+      summary: List users
+      description: Returns all users. Admin role required.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Users returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsersResponse"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+    post:
+      tags:
+        - Users
+      summary: Create a user
+      description: Creates a new user. Admin role required.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserMutationResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "409":
+          $ref: "#/components/responses/ConflictError"
+  /api/users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get a user by ID
+      description: Returns one user. Admin role required.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: User returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          $ref: "#/components/responses/InvalidIdentifierError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+    patch:
+      tags:
+        - Users
+      summary: Update a user
+      description: Updates a user. Admin role required.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserMutationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "409":
+          $ref: "#/components/responses/ConflictError"
+  /api/records:
+    get:
+      tags:
+        - Records
+      summary: List financial records
+      description: Returns paginated records. Analyst and admin roles can read.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RecordTypeFilter"
+        - $ref: "#/components/parameters/CategoryFilter"
+        - $ref: "#/components/parameters/SearchFilter"
+        - $ref: "#/components/parameters/StartDateFilter"
+        - $ref: "#/components/parameters/EndDateFilter"
+        - $ref: "#/components/parameters/PageFilter"
+        - $ref: "#/components/parameters/LimitFilter"
+      responses:
+        "200":
+          description: Records returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordsResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+    post:
+      tags:
+        - Records
+      summary: Create a financial record
+      description: Creates a record. Admin role required.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRecordRequest"
+      responses:
+        "201":
+          description: Record created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordMutationResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+  /api/records/{id}:
+    get:
+      tags:
+        - Records
+      summary: Get a financial record by ID
+      description: Returns a single record. Analyst and admin roles can read.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RecordId"
+      responses:
+        "200":
+          description: Record returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordResponse"
+        "400":
+          $ref: "#/components/responses/InvalidIdentifierError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+    patch:
+      tags:
+        - Records
+      summary: Update a financial record
+      description: Updates a record. Admin role required.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RecordId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRecordRequest"
+      responses:
+        "200":
+          description: Record updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordMutationResponse"
+        "400":
+          $ref: "#/components/responses/BadRequestError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+    delete:
+      tags:
+        - Records
+      summary: Soft-delete a financial record
+      description: Soft-deletes a record. Admin role required.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RecordId"
+      responses:
+        "204":
+          description: Record deleted
+        "400":
+          $ref: "#/components/responses/InvalidIdentifierError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+  /api/dashboard:
+    get:
+      tags:
+        - Dashboard
+      summary: Get dashboard summary
+      description: Returns totals, category breakdowns, recent activity, and monthly trends.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RecordTypeFilter"
+        - $ref: "#/components/parameters/CategoryFilter"
+        - $ref: "#/components/parameters/SearchFilter"
+        - $ref: "#/components/parameters/StartDateFilter"
+        - $ref: "#/components/parameters/EndDateFilter"
+      responses:
+        "200":
+          description: Dashboard summary returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/ForbiddenError"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    UserId:
+      name: id
+      in: path
+      required: true
+      description: MongoDB user identifier
+      schema:
+        type: string
+        example: 6613aa63fd08f9b3fca1d3f2
+    RecordId:
+      name: id
+      in: path
+      required: true
+      description: MongoDB financial record identifier
+      schema:
+        type: string
+        example: 6613ab6dfd08f9b3fca1d402
+    RecordTypeFilter:
+      name: type
+      in: query
+      required: false
+      description: Filter by record type
+      schema:
+        type: string
+        enum:
+          - income
+          - expense
+    CategoryFilter:
+      name: category
+      in: query
+      required: false
+      description: Case-insensitive exact category match
+      schema:
+        type: string
+        example: Operations
+    SearchFilter:
+      name: search
+      in: query
+      required: false
+      description: Partial match against category and notes
+      schema:
+        type: string
+        example: vendor
+    StartDateFilter:
+      name: startDate
+      in: query
+      required: false
+      description: Inclusive lower bound for occurredAt
+      schema:
+        type: string
+        format: date-time
+        example: "2026-04-01T00:00:00.000Z"
+    EndDateFilter:
+      name: endDate
+      in: query
+      required: false
+      description: Inclusive upper bound for occurredAt
+      schema:
+        type: string
+        format: date-time
+        example: "2026-04-30T23:59:59.999Z"
+    PageFilter:
+      name: page
+      in: query
+      required: false
+      description: Page number starting from 1
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    LimitFilter:
+      name: limit
+      in: query
+      required: false
+      description: Number of records per page, from 1 to 100
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+  responses:
+    BadRequestError:
+      description: Request payload, filters, or identifier are invalid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            message: Validation failed.
+            details:
+              - field: amount
+                message: Amount must be greater than zero.
+    ValidationError:
+      description: Request payload or filters are invalid
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            message: Record validation failed.
+            details:
+              - field: amount
+                message: Amount must be greater than zero.
+    UnauthorizedError:
+      description: Authentication is missing, invalid, or expired
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            message: Authentication token is invalid or expired.
+    ForbiddenError:
+      description: Authenticated user lacks permission
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            message: You do not have permission to perform this action.
+    NotFoundError:
+      description: Requested resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            message: Financial record not found.
+    ConflictError:
+      description: Unique value already exists
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            message: A record with that value already exists.
+            details:
+              - field: email
+                message: email must be unique.
+    InvalidIdentifierError:
+      description: Resource ID is not a valid MongoDB identifier
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            message: Invalid resource identifier.
+            details:
+              - field: id
+                message: id is not a valid identifier.
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: ok
+    ErrorDetail:
+      type: object
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+          example: email
+        message:
+          type: string
+          example: Email address is invalid.
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Validation failed.
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErrorDetail"
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@financehub.local
+        password:
+          type: string
+          format: password
+          example: Admin@123
+    ActorUser:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - role
+      properties:
+        id:
+          type: string
+          example: 6613aa63fd08f9b3fca1d3f2
+        name:
+          type: string
+          example: System Admin
+        email:
+          type: string
+          format: email
+          example: admin@financehub.local
+        role:
+          type: string
+          enum:
+            - viewer
+            - analyst
+            - admin
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - role
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          example: 6613aa63fd08f9b3fca1d3f2
+        name:
+          type: string
+          example: System Admin
+        email:
+          type: string
+          format: email
+          example: admin@financehub.local
+        role:
+          type: string
+          enum:
+            - viewer
+            - analyst
+            - admin
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+        lastLogin:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2026-04-04T09:20:00.000Z"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-04-01T08:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-04-04T09:20:00.000Z"
+    LoginResponse:
+      type: object
+      required:
+        - message
+        - token
+        - user
+      properties:
+        message:
+          type: string
+          example: Login successful.
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example
+        user:
+          $ref: "#/components/schemas/User"
+    CurrentUserResponse:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+    UsersResponse:
+      type: object
+      required:
+        - users
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+    UserResponse:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+    UserMutationResponse:
+      type: object
+      required:
+        - message
+        - user
+      properties:
+        message:
+          type: string
+          example: User created successfully.
+        user:
+          $ref: "#/components/schemas/User"
+    CreateUserRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role
+      properties:
+        name:
+          type: string
+          minLength: 2
+          example: Priya Analyst
+        email:
+          type: string
+          format: email
+          example: priya@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: Password@123
+        role:
+          type: string
+          enum:
+            - viewer
+            - analyst
+            - admin
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+          default: active
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          example: Priya Analyst
+        email:
+          type: string
+          format: email
+          example: priya@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: Password@123
+        role:
+          type: string
+          enum:
+            - viewer
+            - analyst
+            - admin
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+    Record:
+      type: object
+      required:
+        - id
+        - amount
+        - type
+        - category
+        - occurredAt
+        - notes
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          example: 6613ab6dfd08f9b3fca1d402
+        amount:
+          type: number
+          format: double
+          example: 4250.75
+        type:
+          type: string
+          enum:
+            - income
+            - expense
+        category:
+          type: string
+          example: Operations
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-04-02T12:30:00.000Z"
+        notes:
+          type: string
+          example: April vendor settlement
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-04-02T12:31:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-04-03T09:15:00.000Z"
+        createdBy:
+          allOf:
+            - $ref: "#/components/schemas/ActorUser"
+          nullable: true
+        updatedBy:
+          allOf:
+            - $ref: "#/components/schemas/ActorUser"
+          nullable: true
+    RecordResponse:
+      type: object
+      required:
+        - record
+      properties:
+        record:
+          $ref: "#/components/schemas/Record"
+    RecordMutationResponse:
+      type: object
+      required:
+        - message
+        - record
+      properties:
+        message:
+          type: string
+          example: Record created successfully.
+        record:
+          $ref: "#/components/schemas/Record"
+    CreateRecordRequest:
+      type: object
+      required:
+        - amount
+        - type
+        - category
+        - occurredAt
+      properties:
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+          example: 4250.75
+        type:
+          type: string
+          enum:
+            - income
+            - expense
+        category:
+          type: string
+          example: Operations
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-04-02T12:30:00.000Z"
+        notes:
+          type: string
+          maxLength: 300
+          default: ""
+          example: April vendor settlement
+    UpdateRecordRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+          example: 4250.75
+        type:
+          type: string
+          enum:
+            - income
+            - expense
+        category:
+          type: string
+          example: Operations
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-04-02T12:30:00.000Z"
+        notes:
+          type: string
+          maxLength: 300
+          example: Updated note
+    Pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - totalRecords
+        - totalPages
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        totalRecords:
+          type: integer
+          example: 48
+        totalPages:
+          type: integer
+          example: 3
+    RecordsResponse:
+      type: object
+      required:
+        - records
+        - pagination
+      properties:
+        records:
+          type: array
+          items:
+            $ref: "#/components/schemas/Record"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    DashboardTotals:
+      type: object
+      required:
+        - income
+        - expense
+        - netBalance
+        - recordCount
+      properties:
+        income:
+          type: number
+          format: double
+          example: 22500
+        expense:
+          type: number
+          format: double
+          example: 15420.25
+        netBalance:
+          type: number
+          format: double
+          example: 7079.75
+        recordCount:
+          type: integer
+          example: 48
+    CategoryTotal:
+      type: object
+      required:
+        - category
+        - income
+        - expense
+        - net
+        - volume
+      properties:
+        category:
+          type: string
+          example: Operations
+        income:
+          type: number
+          format: double
+          example: 8000
+        expense:
+          type: number
+          format: double
+          example: 5250.75
+        net:
+          type: number
+          format: double
+          example: 2749.25
+        volume:
+          type: number
+          format: double
+          example: 13250.75
+    MonthlyTrendItem:
+      type: object
+      required:
+        - month
+        - income
+        - expense
+        - net
+      properties:
+        month:
+          type: string
+          example: "2026-04"
+        income:
+          type: number
+          format: double
+          example: 12000
+        expense:
+          type: number
+          format: double
+          example: 8300
+        net:
+          type: number
+          format: double
+          example: 3700
+    DashboardSummary:
+      type: object
+      required:
+        - totals
+        - categoryTotals
+        - recentActivity
+        - monthlyTrend
+      properties:
+        totals:
+          $ref: "#/components/schemas/DashboardTotals"
+        categoryTotals:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryTotal"
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/Record"
+        monthlyTrend:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonthlyTrendItem"
