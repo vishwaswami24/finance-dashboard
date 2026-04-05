@@ -9,8 +9,6 @@
 
 A full-stack finance dashboard project focused on financial record processing, role-based access control, and summary insights for operational decision-making.
 
-Additional project write-up: [DOCUMENTATION.md](./DOCUMENTATION.md)
-
 ## Overview
 
 This project demonstrates:
